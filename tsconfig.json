@@ -18,16 +18,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "incremental": true,
+    "incremental": true
   },
   "exclude": ["node_modules"],
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.cjs",
-    ".prettierrc.cjs",
-    ".eslintrc.cjs"
-  ],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.cjs", ".prettierrc.cjs", ".eslintrc.cjs"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
