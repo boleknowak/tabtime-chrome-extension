@@ -18,7 +18,7 @@ if (chrome.tabs) {
           },
         };
 
-        console.log(data);
+        console.log('data', data);
       }
     });
   });
