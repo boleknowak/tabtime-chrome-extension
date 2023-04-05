@@ -1,45 +1,18 @@
-import { useState } from 'react';
+export default function App() {
+  // useEffect(() => {
+  //   if (!chrome.action) return;
 
-function App() {
-  const [count, setCount] = useState(0);
-  const [tab, setTab] = useState({});
-
-  // chrome.action.setIcon({ path: "/example/path/image.png" });
-  if (chrome.tabs) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const currentTab = tabs[0];
-      if (currentTab) {
-        const url = new URL(currentTab.url || '');
-        setTab({
-          title: currentTab.title,
-          favicon: currentTab.favIconUrl,
-          url: {
-            origin: url.origin,
-            pathname: url.pathname,
-          },
-        });
-      }
-    });
-  }
-
-  const clickButton = () => {
-    setCount(count + 1);
-  };
+  //   chrome.action.setIcon({ path: '/images/icons/green.png' });
+  //   setTimeout(() => {
+  //     chrome.action.setIcon({ path: '/images/icons/red.png' });
+  //   }, 5000);
+  // }, [chrome.tabs]);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold underline">TabTime</h1>
-      <div>
-        <button onClick={() => clickButton()}>count is {count}</button>
-        <div>
-          <code>
-            <pre>{JSON.stringify(tab, null, 2)}</pre>
-          </code>
-        </div>
-      </div>
-      <p>Click on the Vite and React logos to learn more</p>
+    <div className="w-[400px] p-4 text-center">
+      <h1 className="mb-10 text-3xl font-bold">TabTime</h1>
+      <div className="font-medium">I'm watching your tabs 👀</div>
+      <div className="mt-10 text-xs text-gray-400">Click here to get more information</div>
     </div>
   );
 }
-
-export default App;
