@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -7,40 +6,40 @@ function App() {
 
   // chrome.action.setIcon({ path: "/example/path/image.png" });
   if (chrome.tabs) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    const currentTab = tabs[0];
-    if (currentTab) {
-      const url = new URL(currentTab.url || "");
-      setTab({
-        title: currentTab.title,
-        favicon: currentTab.favIconUrl,
-        url: {
-          origin: url.origin,
-          pathname: url.pathname,
-        },
-      });
-    }
-  });
-}
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentTab = tabs[0];
+      if (currentTab) {
+        const url = new URL(currentTab.url || '');
+        setTab({
+          title: currentTab.title,
+          favicon: currentTab.favIconUrl,
+          url: {
+            origin: url.origin,
+            pathname: url.pathname,
+          },
+        });
+      }
+    });
+  }
+
+  const clickButton = () => {
+    setCount(count + 1);
+  };
 
   return (
-    <div className="App">
-      <h1>TabTime</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <div className='text-left'>
+    <div>
+      <h1 className="text-3xl font-bold underline">TabTime</h1>
+      <div>
+        <button onClick={() => clickButton()}>count is {count}</button>
+        <div>
           <code>
             <pre>{JSON.stringify(tab, null, 2)}</pre>
           </code>
         </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <p>Click on the Vite and React logos to learn more</p>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

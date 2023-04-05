@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:extension": "tsc && vite build && cp src/manifest.json dist/manifest.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint --ext .js,.cjs,.ts,.tsx .",
+    "lint:fix": "eslint --ext .js,.cjs,.ts,.tsx . --fix",
+    "format": "prettier --plugin-search-dir . --check .",
+    "format:fix": "prettier --plugin-search-dir . --write .",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run format"
   },
   "dependencies": {
     "@types/chrome": "^0.0.228",
@@ -18,7 +24,25 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react": "^3.1.0",
-    "typescript": "^4.9.3",
-    "vite": "^4.2.0"
+    "vite": "^4.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
+    "autoprefixer": "^10.4.13",
+    "eslint": "^8.35.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-import-no-duplicates-prefix-resolved-path": "^2.0.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "postcss": "^8.4.21",
+    "prettier": "^2.8.4",
+    "prettier-plugin-tailwindcss": "^0.2.4",
+    "sass": "^1.59.3",
+    "tailwindcss": "^3.2.7",
+    "tslib": "^2.5.0",
+    "tsx": "^3.12.3",
+    "typescript": "^4.9.5"
   }
 }
