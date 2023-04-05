@@ -16,9 +16,22 @@ if (chrome.tabs) {
             origin: url.origin,
             pathname: url.pathname,
           },
+          started_at: new Date().toISOString(),
         };
 
-        console.log('data', data);
+        chrome.storage.sync.get('token', (result) => {
+          if (!result.token) return;
+
+          fetch('http://localhost:3003/v1/track', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${result.token}`,
+              'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify(data),
+          });
+        });
       }
     });
   });
