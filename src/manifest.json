@@ -7,7 +7,7 @@
     "default_popup": "index.html",
     "default_title": "TabTime"
   },
-  "permissions": ["activeTab", "tabs", "storage"],
+  "permissions": ["activeTab", "tabs", "storage", "webNavigation", "windows"],
   "background": {
     "service_worker": "background.js"
   },
