@@ -74,7 +74,6 @@ if (chrome.tabs) {
     await chrome.storage.sync.get('token', async (result) => {
       if (!result.token) return;
 
-      console.log('sending end_at to server...', data);
       // TODO: send end_at to server
       try {
         await fetch(`${API_URL}/track`, {
@@ -96,6 +95,7 @@ if (chrome.tabs) {
     });
   });
 
+  // not working
   chrome.windows.onRemoved.addListener(async (tabid) => {
     if (typeof cache[tabid] === 'undefined') return;
 
@@ -103,7 +103,6 @@ if (chrome.tabs) {
     await chrome.storage.sync.get('token', async (result) => {
       if (!result.token) return;
 
-      console.log(data);
       try {
         await fetch(`${API_URL}/track`, {
           method: 'POST',

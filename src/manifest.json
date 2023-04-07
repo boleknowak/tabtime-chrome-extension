@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "TabTime",
-  "description": "Track your time spent on each tab",
+  "description": "Track your time spent on each tab.",
   "version": "1.0.0",
+  "homepage_url": "https://tabtime.app",
   "action": {
     "default_popup": "index.html",
     "default_title": "TabTime"
@@ -11,5 +12,11 @@
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["*://*/*"]
+  "host_permissions": ["*://*/*"],
+  "icons": {
+    "16": "/images/icons/16.png",
+    "32": "/images/icons/32.png",
+    "48": "/images/icons/48.png",
+    "128": "/images/icons/128.png"
+  }
 }
