@@ -5,11 +5,14 @@ type CurrentStats = {
   time: string;
 };
 
+const API_URL = 'http://localhost:3003/v1';
+
 export default function App() {
   const [token, setToken] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isEditingKey, setIsEditingKey] = useState(false);
-  const [time, setTime] = useState('24h');
+  const [isSavingKey, setIsSavingKey] = useState(false);
+  const [isEditingKeyState, setIsEditingKeyState] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [time, setTime] = useState(null);
   const [currentStats, setCurrentStats] = useState<CurrentStats>({
     origin: '',
     time: '',
@@ -41,26 +44,32 @@ export default function App() {
 
       if (!token) return;
 
-      const response = await fetch(`http://localhost:3003/v1/stats?url=${url}&time=${time}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      origin = origin.replace('https://', '');
-      origin = origin.replace('http://', '');
-      origin = origin.replace('www.', '');
-      origin = origin.replace(/\/$/, '');
-
-      if (data.message === 'ok') {
-        setCurrentStats({
-          origin,
-          time: data.time || '0s',
+      setIsLoadingData(true);
+      try {
+        const response = await fetch(`${API_URL}/stats?url=${url}&time=${time}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         });
+
+        const data = await response.json();
+
+        origin = origin.replace('https://', '');
+        origin = origin.replace('http://', '');
+        origin = origin.replace('www.', '');
+        origin = origin.replace(/\/$/, '');
+
+        if (data.message === 'ok') {
+          setIsLoadingData(false);
+          setCurrentStats({
+            origin,
+            time: data.time || '0s',
+          });
+        }
+      } catch (error) {
+        // console.log(error);
       }
     });
   };
@@ -73,22 +82,27 @@ export default function App() {
     setMessage(messages[Math.floor(Math.random() * messages.length)]);
     if (!chrome.storage) return;
 
-    chrome.storage.sync.get(['token'], (result) => {
+    chrome.storage.sync.get(['token', 'selectedTimeRange'], (result) => {
       setToken(result.token);
+      setTime(result.selectedTimeRange || '24h');
     });
   }, []);
 
   const setUserToken = () => {
     if (!chrome.storage) return;
 
-    setIsSaving(true);
+    setIsSavingKey(true);
     chrome.storage.sync.set({ token }, () => {
-      setIsSaving(false);
+      setIsSavingKey(false);
     });
   };
 
-  const toggleEditKey = () => {
-    setIsEditingKey(!isEditingKey);
+  const setRange = (range: string) => {
+    setTime(range);
+
+    if (!chrome.storage) return;
+
+    chrome.storage.sync.set({ selectedTimeRange: range }, () => {});
   };
 
   // TODO: add view when user not provided token
@@ -99,17 +113,27 @@ export default function App() {
         <div className="text-xs font-medium">{message}</div>
       </div>
       <div className="mt-4 border-2 border-black p-4">
-        <div>
-          <div className="text-lg font-bold">{currentStats.time}</div>
-          <div>{currentStats.origin}</div>
-        </div>
+        {!isLoadingData && (
+          <div>
+            <div className="text-lg font-bold">{currentStats.time}</div>
+            <div className="leading-4">{currentStats.origin}</div>
+          </div>
+        )}
+        {isLoadingData && (
+          <div className="space-y-2">
+            <div className="mx-auto h-6 w-48 animate-pulse rounded bg-gray-100"></div>
+            <div className="mx-auto h-3 w-28 animate-pulse rounded bg-gray-100"></div>
+          </div>
+        )}
       </div>
       <div className="mt-2 flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <button
             type="button"
-            onClick={() => toggleEditKey()}
-            className="border-2 border-black px-2 font-bold uppercase"
+            onClick={() => setIsEditingKeyState(!isEditingKeyState)}
+            className={`border-2 border-black px-2 font-bold uppercase ${
+              isEditingKeyState && 'bg-gray-600 text-white'
+            }`}
           >
             Edit key
           </button>
@@ -117,28 +141,34 @@ export default function App() {
         <div className="flex flex-row items-center space-x-2">
           <button
             type="button"
-            onClick={() => setTime('24h')}
-            className="border-2 border-black bg-gray-600 px-1 font-bold text-white"
+            onClick={() => setRange('24h')}
+            className={`border-2 border-black px-1 font-bold ${
+              time === '24h' && 'bg-gray-600 text-white'
+            }`}
           >
             24h
           </button>
           <button
             type="button"
-            onClick={() => setTime('7d')}
-            className="border-2 border-black px-1 font-bold"
+            onClick={() => setRange('7d')}
+            className={`border-2 border-black px-1 font-bold ${
+              time === '7d' && 'bg-gray-600 text-white'
+            }`}
           >
             7d
           </button>
           <button
             type="button"
-            onClick={() => setTime('all')}
-            className="border-2 border-black px-1 font-bold"
+            onClick={() => setRange('all')}
+            className={`border-2 border-black px-1 font-bold ${
+              time === 'all' && 'bg-gray-600 text-white'
+            }`}
           >
             All
           </button>
         </div>
       </div>
-      {isEditingKey && (
+      {isEditingKeyState && (
         <div className="mt-4 flex flex-grow flex-row space-x-4">
           <input
             type="password"
@@ -149,17 +179,13 @@ export default function App() {
           />
           <button
             onClick={() => setUserToken()}
-            disabled={isSaving}
+            disabled={isSavingKey}
             className="block w-48 bg-black px-2 py-1 font-bold uppercase text-white"
           >
             Save key
           </button>
         </div>
       )}
-      {/* <div className="mt-4">
-        You've spent <span className="font-medium">5 hours and 20 minutes</span> on the{' '}
-        <span className="font-medium">chat.openai.com</span>
-      </div> */}
       <div className="mt-4 space-x-1 text-left text-xs text-gray-500">
         <a href="" className="hover:underline" target="_blank">
           Account

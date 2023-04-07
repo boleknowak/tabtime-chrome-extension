@@ -4,6 +4,7 @@
 //   chrome.action.setIcon({ path: '/images/icons/tabtime.png' });
 // }
 
+const API_URL = 'http://localhost:3003/v1';
 const cache = [];
 
 if (chrome.tabs) {
@@ -31,15 +32,19 @@ if (chrome.tabs) {
           if (!result.token) return;
 
           // TODO: Handle error
-          fetch('http://localhost:3003/v1/track', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${result.token}`,
-              'Access-Control-Allow-Origin': '*',
-            },
-            body: JSON.stringify(data),
-          });
+          try {
+            fetch(`${API_URL}/track`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${result.token}`,
+                'Access-Control-Allow-Origin': '*',
+              },
+              body: JSON.stringify(data),
+            });
+          } catch (error) {
+            // console.error(error);
+          }
         });
       }
     });
@@ -71,19 +76,23 @@ if (chrome.tabs) {
 
       console.log('sending end_at to server...', data);
       // TODO: send end_at to server
-      await fetch('http://localhost:3003/v1/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${result.token}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          ...data,
-          type: 'tab',
-          ended_at: new Date().toISOString(),
-        }),
-      });
+      try {
+        await fetch(`${API_URL}/track`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${result.token}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            ...data,
+            type: 'tab',
+            ended_at: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        // console.error(error);
+      }
     });
   });
 
@@ -95,19 +104,23 @@ if (chrome.tabs) {
       if (!result.token) return;
 
       console.log(data);
-      await fetch('http://localhost:3003/v1/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${result.token}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          ...data,
-          type: 'window',
-          ended_at: new Date().toISOString(),
-        }),
-      });
+      try {
+        await fetch(`${API_URL}/track`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${result.token}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            ...data,
+            type: 'window',
+            ended_at: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        // console.error(error);
+      }
     });
   });
 
