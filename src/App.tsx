@@ -194,7 +194,7 @@ export default function App() {
               disabled={isSavingKey}
               className={`block w-48 bg-black px-2 py-1 font-bold uppercase text-white ${
                 isSavedKey && 'bg-opacity-50'
-              }'}`}
+              }`}
             >
               Save key
             </button>
