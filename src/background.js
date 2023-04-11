@@ -9,6 +9,8 @@ const cache = [];
 
 if (chrome.tabs) {
   const getActiveTab = () => {
+    // chrome.action.setBadgeText({ text: 'ON' });
+    // chrome.action.setBadgeBackgroundColor({ color: '#9688F1' });
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentTab = tabs[0];
       if (currentTab) {

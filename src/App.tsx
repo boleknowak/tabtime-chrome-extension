@@ -193,29 +193,37 @@ export default function App() {
               onClick={() => setUserToken()}
               disabled={isSavingKey}
               className={`block w-48 bg-black px-2 py-1 font-bold uppercase text-white ${
-                isSavedKey && 'bg-opacity-50'
+                isSavingKey && 'bg-opacity-50'
               }`}
             >
               Save key
             </button>
           </div>
           <div className="mt-1 text-left text-xs text-gray-600">
-            <a href="" target="_blank" className="hover:underline">
+            <a
+              href="https://tabtime.app/dashboard/tokens"
+              target="_blank"
+              className="hover:underline"
+            >
               Click here to get a token
             </a>
           </div>
         </div>
       )}
       <div className="mt-4 space-x-1 text-left text-xs text-gray-500">
-        <a href="" className="hover:underline" target="_blank">
+        <a href="https://tabtime.app/dashboard" className="hover:underline" target="_blank">
           Account
         </a>
         <span>•</span>
-        <a href="" className="hover:underline" target="_blank">
+        <a
+          href="https://tabtime.app/dashboard/leaderboard"
+          className="hover:underline"
+          target="_blank"
+        >
           Leaderboard
         </a>
         <span>•</span>
-        <a href="" className="hover:underline" target="_blank">
+        <a href="https://tabtime.app" className="hover:underline" target="_blank">
           About
         </a>
       </div>
