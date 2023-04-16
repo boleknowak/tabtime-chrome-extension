@@ -47,11 +47,11 @@ export default function App() {
 
       setIsLoadingData(true);
       try {
-        const response = await fetch(`${API_URL}/stats?url=${url}&time=${time}`, {
+        const response = await fetch(`${API_URL}/stats?url=${origin}&time=${time}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+            Authorization: token,
           },
         });
 
@@ -59,7 +59,7 @@ export default function App() {
 
         origin = origin.replace('https://', '');
         origin = origin.replace('http://', '');
-        origin = origin.replace('www.', '');
+        // origin = origin.replace('www.', '');
         origin = origin.replace(/\/$/, '');
 
         if (data.message === 'ok') {
@@ -67,6 +67,14 @@ export default function App() {
           setCurrentStats({
             origin,
             time: data.time || '0s',
+          });
+        } else if (data.message === 'token_not_ok') {
+          setIsSavedKey(false);
+        } else {
+          setIsLoadingData(false);
+          setCurrentStats({
+            origin,
+            time: '0s',
           });
         }
       } catch (error) {
