@@ -4,6 +4,13 @@
 //   chrome.action.setIcon({ path: '/images/icons/tabtime.png' });
 // }
 
+// onTabChange it should send a request to server and insert a new record
+// every x minutes it should send a request to server and update the record
+// if server does not get any request for a tab for 5 minutes, it should end the record
+// because if user has 2 windows open (e.g. 2 screens), clock will have a problem
+// newTab -> create record -> update record every x minutes -> end record if no update for 5 minutes
+// e.g. last_ping_at
+
 const API_URL = 'http://localhost:3003/v1';
 const cache = [];
 
@@ -14,22 +21,24 @@ if (chrome.tabs) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentTab = tabs[0];
       if (currentTab) {
-        if (typeof currentTab.url === 'undefined') return;
-        if (currentTab.url.startsWith('chrome://')) return;
+        const checkUrl = currentTab.url || currentTab.pendingUrl || '';
+        if (typeof checkUrl === 'undefined') return;
+        if (checkUrl.startsWith('chrome://')) return;
+        if (checkUrl.startsWith('chrome-extension://')) return;
+        if (checkUrl.startsWith('chrome://newtab')) return;
 
-        const url = new URL(currentTab.url || currentTab.pendingUrl || '');
+        const url = new URL(checkUrl);
         const data = {
           title: currentTab.title,
           favicon: currentTab.favIconUrl,
           url: {
             origin: url.origin,
-            pathname: url.pathname,
+            pathname: url.pathname + url.search,
           },
           started_at: new Date().toISOString(),
         };
 
         cache[currentTab.id] = data;
-
         chrome.storage.sync.get('token', (result) => {
           if (!result.token) return;
 
@@ -39,7 +48,7 @@ if (chrome.tabs) {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${result.token}`,
+                Authorization: result.token,
                 'Access-Control-Allow-Origin': '*',
               },
               body: JSON.stringify(data),
@@ -52,11 +61,16 @@ if (chrome.tabs) {
     });
   };
 
-  chrome.webNavigation.onHistoryStateUpdated.addListener((data) => {
-    if (data.frameId === 0) {
-      getActiveTab();
-    }
-  });
+  // chrome.webNavigation.onHistoryStateUpdated.addListener(() => {
+  //   fetch(`${API_URL}?event=onHistoryStateUpdated`, {
+  //     method: 'GET',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Access-Control-Allow-Origin': '*',
+  //     },
+  //   });
+  //   getActiveTab();
+  // });
 
   chrome.tabs.onActivated.addListener(() => {
     getActiveTab();
@@ -82,7 +96,7 @@ if (chrome.tabs) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${result.token}`,
+            Authorization: result.token,
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({
@@ -110,7 +124,7 @@ if (chrome.tabs) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${result.token}`,
+            Authorization: result.token,
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({

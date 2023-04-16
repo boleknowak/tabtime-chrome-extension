@@ -201,7 +201,7 @@ export default function App() {
           </div>
           <div className="mt-1 text-left text-xs text-gray-600">
             <a
-              href="https://tabtime.app/dashboard/tokens"
+              href="https://tabtime.app/dashboard/keys"
               target="_blank"
               className="hover:underline"
             >
