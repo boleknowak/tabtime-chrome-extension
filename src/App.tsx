@@ -23,8 +23,6 @@ export default function App() {
     'TabTime is keeping an eye on your tabs 👀',
     'Keep calm and TabTime on 🤘',
     'TabTime, because every second counts ⏰',
-    'TabTime, because you deserve to know how you spend your time ⏳',
-    'Track your time, crush your goals - with TabTime ⏰',
     'Make every minute count - with TabTime 🤑',
   ];
   const [message, setMessage] = useState(messages[0]);
@@ -59,7 +57,6 @@ export default function App() {
 
         origin = origin.replace('https://', '');
         origin = origin.replace('http://', '');
-        // origin = origin.replace('www.', '');
         origin = origin.replace(/\/$/, '');
 
         if (data.message === 'ok') {
