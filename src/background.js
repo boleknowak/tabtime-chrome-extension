@@ -15,7 +15,7 @@ const API_URL = 'http://localhost:3003/v1';
 const cache = [];
 
 if (chrome.tabs) {
-  const getActiveTab = () => {
+  const getActiveTab = (mode = 'track') => {
     // chrome.action.setBadgeText({ text: 'ON' });
     // chrome.action.setBadgeBackgroundColor({ color: '#9688F1' });
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -28,34 +28,38 @@ if (chrome.tabs) {
         if (checkUrl.startsWith('chrome://newtab')) return;
 
         const url = new URL(checkUrl);
-        const data = {
-          title: currentTab.title,
-          favicon: currentTab.favIconUrl,
-          url: {
-            origin: url.origin,
-            pathname: url.pathname + url.search,
-          },
-          started_at: new Date().toISOString(),
-        };
 
-        cache[currentTab.id] = data;
-        chrome.storage.sync.get('token', (result) => {
-          if (!result.token) return;
+        chrome.runtime.getPlatformInfo((info) => {
+          const data = {
+            title: currentTab.title,
+            favicon: currentTab.favIconUrl,
+            url: {
+              origin: url.origin,
+              pathname: url.pathname + url.search,
+            },
+            os: info.os || 'unknown',
+            browser: 'chrome',
+          };
 
-          // TODO: Handle error
-          try {
-            fetch(`${API_URL}/track`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: result.token,
-                'Access-Control-Allow-Origin': '*',
-              },
-              body: JSON.stringify(data),
-            });
-          } catch (error) {
-            // console.error(error);
-          }
+          cache[currentTab.id] = data;
+          chrome.storage.sync.get('token', (result) => {
+            if (!result.token) return;
+
+            // TODO: Handle error
+            try {
+              fetch(`${API_URL}/${mode}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: result.token,
+                  'Access-Control-Allow-Origin': '*',
+                },
+                body: JSON.stringify(data),
+              });
+            } catch (error) {
+              // console.error(error);
+            }
+          });
         });
       }
     });
@@ -111,36 +115,7 @@ if (chrome.tabs) {
     });
   });
 
-  // not working
-  chrome.windows.onRemoved.addListener(async (tabid) => {
-    if (typeof cache[tabid] === 'undefined') return;
-
-    const data = cache[tabid];
-    await chrome.storage.sync.get('token', async (result) => {
-      if (!result.token) return;
-
-      try {
-        await fetch(`${API_URL}/track`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: result.token,
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            ...data,
-            type: 'window',
-            ended_at: new Date().toISOString(),
-          }),
-        });
-      } catch (error) {
-        // console.error(error);
-      }
-    });
-  });
-
   setInterval(() => {
-    // getActiveTab();
-    // TODO: pulse to server, if started_at is set but ended_at is not, and there are 5 minutes passed, then end it
-  }, 1000 * 60 * 5);
+    getActiveTab('pulse');
+  }, 1000 * 5);
 }
