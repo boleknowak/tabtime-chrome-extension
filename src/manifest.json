@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TabTime",
   "description": "Track your time spent on each tab.",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "homepage_url": "https://tabtime.app",
   "action": {
     "default_popup": "index.html",
