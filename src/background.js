@@ -1,18 +1,59 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable no-undef */
 
-// if (chrome.action) {
-//   chrome.action.setIcon({ path: '/images/icons/tabtime.png' });
-// }
-
-// onTabChange it should send a request to server and insert a new record
-// every x minutes it should send a request to server and update the record
-// if server does not get any request for a tab for 5 minutes, it should end the record
 // because if user has 2 windows open (e.g. 2 screens), clock will have a problem
 // newTab -> create record -> update record every x minutes -> end record if no update for 5 minutes
-// e.g. last_ping_at
 
 const API_URL = 'http://localhost:3003/v1';
 const cache = [];
+
+function getOSAndBrowserInfo(userAgent) {
+  let os;
+  let browser;
+  let version;
+
+  // Get operating system
+  if (userAgent.indexOf('Win') !== -1) {
+    os = 'Windows';
+  } else if (userAgent.indexOf('Mac') !== -1) {
+    os = 'MacOS';
+  } else if (userAgent.indexOf('Linux') !== -1) {
+    os = 'Linux';
+  } else if (userAgent.indexOf('Android') !== -1) {
+    os = 'Android';
+  } else if (userAgent.indexOf('iOS') !== -1) {
+    os = 'iOS';
+  } else {
+    os = 'Unknown';
+  }
+
+  // Get browser name and version
+  if (/MSIE|Trident/.test(userAgent)) {
+    browser = 'Internet Explorer';
+    version = userAgent.match(/(?:MSIE |rv:)(\d+(\.\d+)?)/)[1];
+  } else if (/Firefox/.test(userAgent)) {
+    browser = 'Mozilla Firefox';
+    version = userAgent.match(/Firefox\/(\d+(\.\d+)?)/)[1];
+  } else if (/Chrome/.test(userAgent)) {
+    browser = 'Google Chrome';
+    version = userAgent.match(/Chrome\/(\d+(\.\d+)?)/)[1];
+  } else if (/Safari/.test(userAgent)) {
+    browser = 'Apple Safari';
+    version = userAgent.match(/Safari\/(\d+(\.\d+)?)/)[1];
+  } else if (/Edge/.test(userAgent)) {
+    browser = 'Microsoft Edge';
+    version = userAgent.match(/Edge\/(\d+(\.\d+)?)/)[1];
+  } else {
+    browser = 'Unknown';
+    version = 'Unknown';
+  }
+
+  return {
+    os,
+    browser,
+    version,
+  };
+}
 
 if (chrome.tabs) {
   const getActiveTab = (mode = 'track') => {
@@ -23,43 +64,44 @@ if (chrome.tabs) {
       if (currentTab) {
         const checkUrl = currentTab.url || currentTab.pendingUrl || '';
         if (typeof checkUrl === 'undefined') return;
-        if (checkUrl.startsWith('chrome://')) return;
-        if (checkUrl.startsWith('chrome-extension://')) return;
-        if (checkUrl.startsWith('chrome://newtab')) return;
+        // if (checkUrl.startsWith('chrome://')) return;
+        // if (checkUrl.startsWith('chrome-extension://')) return;
+        // if (checkUrl.startsWith('chrome://newtab')) return;
 
         const url = new URL(checkUrl);
 
-        chrome.runtime.getPlatformInfo((info) => {
-          const data = {
-            title: currentTab.title,
-            favicon: currentTab.favIconUrl,
-            url: {
-              origin: url.origin,
-              pathname: url.pathname + url.search,
-            },
-            os: info.os || 'unknown',
-            browser: 'chrome',
-          };
+        const userAgent = getOSAndBrowserInfo(navigator.userAgent);
 
-          cache[currentTab.id] = data;
-          chrome.storage.sync.get('token', (result) => {
-            if (!result.token) return;
+        // chrome.runtime.getPlatformInfo((info) => {});
+        const data = {
+          title: currentTab.title,
+          favicon: currentTab.favIconUrl,
+          url: {
+            origin: url.origin,
+            pathname: url.pathname + url.search,
+          },
+          os: userAgent.os || 'unknown',
+          browser: userAgent.browser || 'unknown',
+        };
 
-            // TODO: Handle error
-            try {
-              fetch(`${API_URL}/${mode}`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: result.token,
-                  'Access-Control-Allow-Origin': '*',
-                },
-                body: JSON.stringify(data),
-              });
-            } catch (error) {
-              // console.error(error);
-            }
-          });
+        cache[currentTab.id] = data;
+        chrome.storage.sync.get('token', (result) => {
+          if (!result.token) return;
+
+          // TODO: Handle error
+          try {
+            fetch(`${API_URL}/${mode}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: result.token,
+                'Access-Control-Allow-Origin': '*',
+              },
+              body: JSON.stringify(data),
+            });
+          } catch (error) {
+            // console.error(error);
+          }
         });
       }
     });
