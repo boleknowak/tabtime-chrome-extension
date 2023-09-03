@@ -1,11 +1,7 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-undef */
 
-// because if user has 2 windows open (e.g. 2 screens), clock will have a problem
-// newTab -> create record -> update record every x minutes -> end record if no update for 5 minutes
-
 const API_URL = 'http://localhost:3003/v1';
-const cache = [];
 
 function getOSAndBrowserInfo(userAgent) {
   let os;
@@ -56,108 +52,55 @@ function getOSAndBrowserInfo(userAgent) {
 }
 
 if (chrome.tabs) {
-  const getActiveTab = (mode = 'track') => {
+  const getActiveTabs = () => {
     // chrome.action.setBadgeText({ text: 'ON' });
     // chrome.action.setBadgeBackgroundColor({ color: '#9688F1' });
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const currentTab = tabs[0];
-      if (currentTab) {
-        const checkUrl = currentTab.url || currentTab.pendingUrl || '';
-        if (typeof checkUrl === 'undefined') return;
-        // if (checkUrl.startsWith('chrome://')) return;
-        // if (checkUrl.startsWith('chrome-extension://')) return;
-        // if (checkUrl.startsWith('chrome://newtab')) return;
+    chrome.tabs.query({ active: true }, (tabs) => {
+      chrome.storage.sync.get('token', (result) => {
+        if (!result.token) return;
 
-        const url = new URL(checkUrl);
+        // TODO: Handle error
+        try {
+          const data = {
+            tabs: tabs.map((tab) => {
+              const checkUrl = tab.url || tab.pendingUrl || '';
+              if (typeof checkUrl === 'undefined') return null;
+              // if (checkUrl.startsWith('chrome://')) return null;
+              // if (checkUrl.startsWith('chrome-extension://')) return null;
+              // if (checkUrl.startsWith('chrome://newtab')) return null;
 
-        const userAgent = getOSAndBrowserInfo(navigator.userAgent);
+              const url = new URL(checkUrl);
 
-        // chrome.runtime.getPlatformInfo((info) => {});
-        const data = {
-          title: currentTab.title,
-          favicon: currentTab.favIconUrl,
-          url: {
-            origin: url.origin,
-            pathname: url.pathname + url.search,
-          },
-          os: userAgent.os || 'unknown',
-          browser: userAgent.browser || 'unknown',
-        };
+              return {
+                title: tab.title,
+                favicon: tab.favIconUrl,
+                url: {
+                  origin: url.origin,
+                  pathname: url.pathname + url.search,
+                },
+              };
+            }),
+            os: getOSAndBrowserInfo(navigator.userAgent).os,
+            browser: getOSAndBrowserInfo(navigator.userAgent).browser,
+          };
 
-        cache[currentTab.id] = data;
-        chrome.storage.sync.get('token', (result) => {
-          if (!result.token) return;
-
-          // TODO: Handle error
-          try {
-            fetch(`${API_URL}/${mode}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: result.token,
-                'Access-Control-Allow-Origin': '*',
-              },
-              body: JSON.stringify(data),
-            });
-          } catch (error) {
-            // console.error(error);
-          }
-        });
-      }
+          fetch(`${API_URL}/track-tabs`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: result.token,
+              'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify(data),
+          });
+        } catch (error) {
+          // console.error(error);
+        }
+      });
     });
   };
 
-  // chrome.webNavigation.onHistoryStateUpdated.addListener(() => {
-  //   fetch(`${API_URL}?event=onHistoryStateUpdated`, {
-  //     method: 'GET',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Access-Control-Allow-Origin': '*',
-  //     },
-  //   });
-  //   getActiveTab();
-  // });
-
-  chrome.tabs.onActivated.addListener(() => {
-    getActiveTab();
-  });
-
-  chrome.tabs.onUpdated.addListener((tabid, changeInfo) => {
-    if (changeInfo.status === 'complete') {
-      getActiveTab();
-    }
-  });
-
-  chrome.tabs.onRemoved.addListener(async (tabid) => {
-    if (typeof cache[tabid] === 'undefined') return;
-
-    const data = cache[tabid];
-
-    await chrome.storage.sync.get('token', async (result) => {
-      if (!result.token) return;
-
-      // TODO: send end_at to server
-      try {
-        await fetch(`${API_URL}/track`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: result.token,
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            ...data,
-            type: 'tab',
-            ended_at: new Date().toISOString(),
-          }),
-        });
-      } catch (error) {
-        // console.error(error);
-      }
-    });
-  });
-
   setInterval(() => {
-    getActiveTab('pulse');
-  }, 1000 * 5);
+    getActiveTabs();
+  }, 1000 * 1);
 }
