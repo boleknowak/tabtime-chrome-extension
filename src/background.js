@@ -1,7 +1,9 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-undef */
 
-const API_URL = 'http://localhost:3003/v1';
+const APP_ENV = 'production';
+const API_URL =
+  APP_ENV === 'development' ? 'http://localhost:3003/v1' : 'https://api.tabtime.app/v1';
 
 function getOSAndBrowserInfo(userAgent) {
   let os;
