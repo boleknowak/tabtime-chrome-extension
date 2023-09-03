@@ -5,7 +5,11 @@ type CurrentStats = {
   time: string;
 };
 
-const API_URL = 'http://localhost:3003/v1';
+const APP_ENV = 'production';
+const API_URL =
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  APP_ENV === 'development' ? 'http://localhost:3003/v1' : 'https://api.tabtime.app/v1';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(null);
